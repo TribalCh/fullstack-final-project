@@ -1,7 +1,9 @@
 from rest_framework import viewsets, generics
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import DjangoModelPermissions
 from .models import SalesOrder, SalesOrderItem
 from .serializers import SalesOrderSerializer, SalesOrderItemSerializer
-from rest_framework.permissions import DjangoModelPermissions
 
 # ViewSet for handling CRUD operations for SalesOrder
 class SalesOrderViewSet(viewsets.ModelViewSet):
@@ -38,3 +40,30 @@ class SalesOrderItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [DjangoModelPermissions]
     queryset = SalesOrderItem.objects.all()
     serializer_class = SalesOrderItemSerializer
+
+# New view for marking a SalesOrder as completed and updating stock
+class CompleteSalesOrderView(APIView):
+    permission_classes = [DjangoModelPermissions]
+
+    def post(self, request, order_id):
+        try:
+            # Retrieve the SalesOrder object by its order_id
+            order = SalesOrder.objects.get(order_id=order_id)
+
+            # Ensure the order is not already marked as completed
+            if order.status == 'Completed':
+                return Response({"message": f"Order {order_id} is already completed."}, status=400)
+
+            # Mark the order as completed, which deducts stock and creates logs
+            order.mark_as_completed()
+
+            # Return a success response
+            return Response({"message": f"Order {order_id} marked as completed and stock updated."})
+
+        except SalesOrder.DoesNotExist:
+            # Handle the case where the order ID does not exist
+            return Response({"error": "Order not found."}, status=404)
+
+        except Exception as e:
+            # Handle any other unexpected errors
+            return Response({"error": f"An error occurred: {str(e)}"}, status=500)

@@ -30,18 +30,25 @@ class SalesOrderSerializer(serializers.ModelSerializer):
         return order
 
     def update(self, instance, validated_data):
-        """Override update method to handle nested order items properly."""
+        """Override update method to handle nested order items and mark as completed if necessary."""
         order_items_data = validated_data.pop('order_items', [])
-        # Update the order instance
+        
+        # Update the order instance fields
         instance.customer_name = validated_data.get('customer_name', instance.customer_name)
         instance.payment_method = validated_data.get('payment_method', instance.payment_method)
         instance.status = validated_data.get('status', instance.status)
+        
+        # If the status is being updated to 'Completed', trigger the mark_as_completed method
+        if instance.status == 'Completed':
+            instance.mark_as_completed()  # Ensure stock deduction and log creation
+
         instance.save()
         
         # Clear existing items and add updated ones
         instance.order_items.all().delete()
         for item_data in order_items_data:
             SalesOrderItem.objects.create(order=instance, **item_data)
-        
-        instance.calculate_total_amount()  # Recalculate totals
+
+        # Recalculate totals after updating the order items
+        instance.calculate_total_amount()
         return instance
