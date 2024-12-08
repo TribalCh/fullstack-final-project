@@ -1,37 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProductsForm from '../components/ProductsForm';
 import ProductsList from '../components/ProductsList';
 
 const Products = () => {
-  const [products, setProducts] = useState([
-    { id: 1, name: 'Product A', description: 'Desc A', price: 10, quantity: 100 },
-    { id: 2, name: 'Product B', description: 'Desc B', price: 20, quantity: 50 },
-  ]);
-  const [currentProduct, setCurrentProduct] = useState(null); // Track the product being edited
+  const [products, setProducts] = useState([]);
+
+  // Load products from localStorage on component mount
+  useEffect(() => {
+    const savedProducts = localStorage.getItem('products');
+    if (savedProducts) {
+      setProducts(JSON.parse(savedProducts));
+    }
+  }, []);
+
+  // Save products to localStorage whenever they are updated
+  useEffect(() => {
+    localStorage.setItem('products', JSON.stringify(products));
+  }, [products]);
 
   const handleAddProduct = (product) => {
-    if (currentProduct) {
-      // Edit product
-      setProducts(
-        products.map((p) =>
-          p.id === currentProduct.id ? { ...currentProduct, ...product } : p
-        )
-      );
-      setCurrentProduct(null); // Reset editing state
-    } else {
-      // Add new product
-      const newProduct = {
-        ...product,
-        id: Date.now(),
-        price: parseFloat(product.price),
-        quantity: parseInt(product.quantity, 10),
-      };
-      setProducts([...products, newProduct]);
-    }
+    const newProduct = {
+      ...product,
+      id: Date.now(),
+      price: parseFloat(product.price),
+      quantity: parseInt(product.quantity, 10),
+    };
+    setProducts([...products, newProduct]);
   };
 
   const handleEditProduct = (product) => {
-    setCurrentProduct(product); // Set product for editing
+    setProducts(
+      products.map((p) =>
+        p.id === product.id ? { ...product } : p
+      )
+    );
   };
 
   const handleDeleteProduct = (id) => {
@@ -40,7 +42,8 @@ const Products = () => {
 
   return (
     <div>
-      <ProductsForm onSubmit={handleAddProduct} initialData={currentProduct} />
+      <h1>Products Manager</h1>
+      <ProductsForm onSubmit={handleAddProduct} />
       <ProductsList
         products={products}
         onEdit={handleEditProduct}

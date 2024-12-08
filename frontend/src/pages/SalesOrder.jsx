@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useState, useEffect } from 'react';
 import SalesOrderForm from '../components/SalesOrderForm';
 import SalesOrderList from '../components/SalesOrderList';
 
@@ -9,26 +8,23 @@ const SalesOrders = () => {
     { id: 1, name: 'Product A', price: 10 },
     { id: 2, name: 'Product B', price: 20 },
   ]);
-  const [currentOrder, setCurrentOrder] = useState(null); // Track the order being edited
 
-  const handleAddOrEditOrder = (order) => {
-    if (currentOrder) {
-      // Update existing order
-      setOrders(
-        orders.map((o) =>
-          o.id === currentOrder.id ? { ...currentOrder, ...order } : o
-        )
-      );
-      setCurrentOrder(null); // Reset after editing
-    } else {
-      // Add new order
-      const newOrder = { ...order, id: uuidv4() };
-      setOrders([...orders, newOrder]);
+  // Load orders from localStorage on component mount
+  useEffect(() => {
+    const savedOrders = localStorage.getItem('orders');
+    if (savedOrders) {
+      setOrders(JSON.parse(savedOrders));
     }
-  };
+  }, []);
 
-  const handleEditOrder = (order) => {
-    setCurrentOrder(order); // Set the current order for editing
+  // Save orders to localStorage whenever they are updated
+  useEffect(() => {
+    localStorage.setItem('orders', JSON.stringify(orders));
+  }, [orders]);
+
+  const handleAddOrder = (order) => {
+    const newOrder = { ...order, id: Date.now() };
+    setOrders([...orders, newOrder]);
   };
 
   const handleDeleteOrder = (id) => {
@@ -37,16 +33,9 @@ const SalesOrders = () => {
 
   return (
     <div>
-      <SalesOrderForm
-        products={products}
-        onSubmit={handleAddOrEditOrder}
-        initialData={currentOrder}
-      />
-      <SalesOrderList
-        orders={orders}
-        onEdit={handleEditOrder}
-        onDelete={handleDeleteOrder}
-      />
+      <h1>Sales Orders</h1>
+      <SalesOrderForm products={products} onSubmit={handleAddOrder} />
+      <SalesOrderList orders={orders} onDelete={handleDeleteOrder} />
     </div>
   );
 };
