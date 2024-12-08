@@ -52,8 +52,27 @@ class SalesOrderItem(models.Model):
         return self.product.unit_price
 
     def save(self, *args, **kwargs):
-        """Override save method to deduct stock and log changes when creating or updating a SalesOrderItem."""
-        if not self.pk:  # This block runs only when the SalesOrderItem is being created
+        """Override save method to adjust stock and log changes when creating or updating a SalesOrderItem."""
+        if self.pk:  # This block runs when updating an existing SalesOrderItem
+            original = SalesOrderItem.objects.get(pk=self.pk)
+            if self.quantity != original.quantity:
+                # Calculate the difference in quantity
+                quantity_difference = self.quantity - original.quantity
+
+                # Adjust stock accordingly (add if quantity is reduced, subtract if increased)
+                self.product.stock_quantity -= quantity_difference
+                if self.product.stock_quantity < 0:
+                    raise ValueError(f"Not enough stock available for {self.product.name}. Current stock: {self.product.stock_quantity + quantity_difference}")
+                
+                self.product.save()
+                
+                # Log the change in stock
+                ProductStockLog.objects.create(
+                    product=self.product,
+                    change_quantity=-quantity_difference,
+                    description=f"Stock adjustment for order {self.order.order_id} (Item: {self.product.name})"
+                )
+        else:  # This block runs only when creating a new SalesOrderItem
             if self.product.stock_quantity < self.quantity:
                 raise ValueError(f"Not enough stock available for {self.product.name}. Current stock: {self.product.stock_quantity}")
 
@@ -65,7 +84,7 @@ class SalesOrderItem(models.Model):
                 change_quantity=-self.quantity,
                 description=f"Stock deduction for order {self.order.order_id} (Item: {self.product.name})"
             )
-        
+
         # Set price at purchase and calculate total price
         self.price_at_purchase = self.unit_price  # Set price_at_purchase at the time of saving
         self.total_price = self.quantity * self.price_at_purchase
