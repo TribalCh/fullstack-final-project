@@ -2,7 +2,6 @@ from rest_framework import serializers
 from .models import SalesOrder, SalesOrderItem
 
 class SalesOrderItemSerializer(serializers.ModelSerializer):
-    # Include product details in the item for easier identification
     product = serializers.StringRelatedField()
 
     class Meta:
@@ -10,10 +9,8 @@ class SalesOrderItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class SalesOrderSerializer(serializers.ModelSerializer):
-    # Nested serializer for items related to this order
     order_items = SalesOrderItemSerializer(many=True, read_only=True)
     
-    # Calculate and display the final amount directly if needed
     final_amount = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
 
     class Meta:
@@ -21,7 +18,6 @@ class SalesOrderSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
-        """Override create method to handle nested order items properly."""
         order_items_data = validated_data.pop('order_items', [])
         order = SalesOrder.objects.create(**validated_data)
         for item_data in order_items_data:
@@ -30,25 +26,20 @@ class SalesOrderSerializer(serializers.ModelSerializer):
         return order
 
     def update(self, instance, validated_data):
-        """Override update method to handle nested order items and mark as completed if necessary."""
         order_items_data = validated_data.pop('order_items', [])
         
-        # Update the order instance fields
         instance.customer_name = validated_data.get('customer_name', instance.customer_name)
         instance.payment_method = validated_data.get('payment_method', instance.payment_method)
         instance.status = validated_data.get('status', instance.status)
         
-        # If the status is being updated to 'Completed', trigger the mark_as_completed method
         if instance.status == 'Completed':
             instance.mark_as_completed()  # Ensure stock deduction and log creation
 
         instance.save()
         
-        # Clear existing items and add updated ones
         instance.order_items.all().delete()
         for item_data in order_items_data:
             SalesOrderItem.objects.create(order=instance, **item_data)
 
-        # Recalculate totals after updating the order items
         instance.calculate_total_amount()
         return instance

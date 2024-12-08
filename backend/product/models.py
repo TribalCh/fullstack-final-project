@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User  # For tracking the user who makes changes
+from django.contrib.auth.models import User  
 
 class ProductCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -26,7 +26,7 @@ class Product(models.Model):
         ordering = ['name']
 
     def deduct_stock(self, quantity):
-        """Deducts the given quantity from the stock and ensures it's not negative."""
+        
         if self.stock_quantity >= quantity:
             self.stock_quantity -= quantity
             self.save()
@@ -35,7 +35,7 @@ class Product(models.Model):
             raise ValueError("Insufficient stock available.")
 
     def add_stock(self, quantity):
-        """Adds the given quantity to the stock."""
+        
         self.stock_quantity += quantity
         self.save()
 
@@ -44,7 +44,7 @@ class ProductStockLog(models.Model):
     change_quantity = models.IntegerField()
     log_date = models.DateTimeField(auto_now_add=True)
     description = models.TextField(blank=True, null=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)  # Optional field to track the user
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)  
 
     def __str__(self):
         return f"{self.change_quantity} units for {self.product.name} on {self.log_date.strftime('%Y-%m-%d')}"
