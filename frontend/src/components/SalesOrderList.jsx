@@ -1,18 +1,28 @@
 import React, { useState } from 'react';
+import SalesOrderForm from './SalesOrderForm'; // Import the form component
 import OrderModal from './OrderModal';
 
-const SalesOrderList = ({ orders, onEdit, onDelete }) => {
+const SalesOrderList = ({ orders, products, categories, onEdit, onDelete }) => {
   const [showModal, setShowModal] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [selectedOrderData, setSelectedOrderData] = useState(null);
+  const [showEditForm, setShowEditForm] = useState(false);
 
   const viewOrder = (orderId) => {
     setSelectedOrderId(orderId);
     setShowModal(true);
   };
 
+  const editOrder = (order) => {
+    setSelectedOrderData(order);
+    setShowEditForm(true);
+  };
+
   const closeModal = () => {
     setShowModal(false);
     setSelectedOrderId(null);
+    setShowEditForm(false);
+    setSelectedOrderData(null);
   };
 
   return (
@@ -34,7 +44,7 @@ const SalesOrderList = ({ orders, onEdit, onDelete }) => {
             <strong>Total:</strong> ₱{Number(order.total_amount).toFixed(2)}
             <div style={{ marginTop: '5px' }}>
               <button
-                onClick={() => onEdit(order)}
+                onClick={() => editOrder(order)}
                 style={{ marginRight: '10px' }}
               >
                 Edit
@@ -66,7 +76,7 @@ const SalesOrderList = ({ orders, onEdit, onDelete }) => {
         <OrderModal orderId={selectedOrderId} onClose={closeModal} />
       )}
 
-      {showModal && (
+      {showEditForm && selectedOrderData && (
         <div
           style={{
             position: 'fixed',
@@ -78,7 +88,14 @@ const SalesOrderList = ({ orders, onEdit, onDelete }) => {
             zIndex: 999,
           }}
           onClick={closeModal}
-        />
+        >
+          <SalesOrderForm
+            products={products}
+            categories={categories}
+            initialData={selectedOrderData}
+            onSubmit={closeModal} // Close form after submission
+          />
+        </div>
       )}
     </div>
   );

@@ -10,6 +10,8 @@ const OrderModal = ({ orderId, onClose }) => {
     const fetchOrderDetails = async () => {
       try {
         const response = await axios.get(`http://localhost:8000/api/salesorders/${orderId}/`);
+        console.log('API Response:', response.data); // Log the response for debugging
+        
         // Ensure items is always an array
         setOrder({
           ...response.data,
@@ -33,6 +35,9 @@ const OrderModal = ({ orderId, onClose }) => {
     return <p>Loading...</p>;
   }
 
+  // Check the structure of order before rendering
+  console.log('Order State:', order);
+
   return (
     <div
       style={{
@@ -54,7 +59,7 @@ const OrderModal = ({ orderId, onClose }) => {
       <p><strong>Total Amount:</strong> ₱{Number(order.total_amount).toFixed(2)}</p>
       <p><strong>Status:</strong> {order.status}</p>
       <h5>Order Items:</h5>
-      {order.items.length > 0 ? (
+      {Array.isArray(order.items) && order.items.length > 0 ? (
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {order.items.map((item) => (
             <li key={item.id} style={{ marginBottom: '10px' }}>
