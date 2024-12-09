@@ -24,9 +24,11 @@ const SalesOrderForm = ({ products, onSubmit, initialData }) => {
       return;
     }
     const product = products.find((p) => p.id === parseInt(order.productId));
-    const total = product.price * order.quantity;
-    onSubmit({ ...order, productName: product.name, price: product.price, total });
+    const total = product.unit_price * order.quantity;
+    const postData = { ...order, productName: product.name, price: product.unit_price, total};
+    onSubmit({ ...order, productName: product.name, price: product.unit_price, total });
     setOrder({ productId: '', quantity: '' });
+    console.log(postData)
   };
 
   return (
@@ -43,7 +45,7 @@ const SalesOrderForm = ({ products, onSubmit, initialData }) => {
           <option value="">Select a product</option>
           {products.map((product) => (
             <option key={product.id} value={product.id}>
-              {product.name} - ₱{product.price}
+              {product.name} - ₱{product.unit_price}
             </option>
           ))}
         </select>
