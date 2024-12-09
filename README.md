@@ -4,7 +4,7 @@
 
 Essential inventory management to a product that can be placed, edited, or deleted in the database, adjusts its stock level and sets its expiration date. Also, A simple customer experience where they could put their products in the cart and a provided transaction on the website once the checkout is completed.
 
-# Database Structure
+# Database Structure    
 ![alt text](<Full_Stack_Database_Structure.jpeg>)
 
 # Developer Names
