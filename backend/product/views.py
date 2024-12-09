@@ -1,11 +1,11 @@
 from rest_framework import viewsets, generics
 from .models import Product
 from .serializers import ProductSerializer
-from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.permissions import DjangoModelPermissions, AllowAny
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    permission_classes = [DjangoModelPermissions]
+    permission_classes = [AllowAny]
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 

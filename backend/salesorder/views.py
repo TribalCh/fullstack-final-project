@@ -1,42 +1,42 @@
 from rest_framework import viewsets, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.permissions import AllowAny
 from .models import SalesOrder, Cart
 from .serializers import SalesOrderSerializer, CartSerializer
 
 class SalesOrderViewSet(viewsets.ModelViewSet):
-    permission_classes = [DjangoModelPermissions]
+    permission_classes = [AllowAny]
     queryset = SalesOrder.objects.all()
     serializer_class = SalesOrderSerializer
 
 class SalesOrderCreateView(generics.CreateAPIView):
-    permission_classes = [DjangoModelPermissions]
+    permission_classes = [AllowAny]
     queryset = SalesOrder.objects.all()
     serializer_class = SalesOrderSerializer
 
 class SalesOrderDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [DjangoModelPermissions]
+    permission_classes = [AllowAny]
     queryset = SalesOrder.objects.all()
     serializer_class = SalesOrderSerializer
 
 class CartViewSet(viewsets.ModelViewSet):
-    permission_classes = [DjangoModelPermissions]
+    permission_classes = [AllowAny]
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
 class SalesOrderItemCreateView(generics.CreateAPIView):
-    permission_classes = [DjangoModelPermissions]
+    permission_classes = [AllowAny]
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
 class SalesOrderItemDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [DjangoModelPermissions]
+    permission_classes = [AllowAny]
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
 class CompleteSalesOrderView(APIView):
-    permission_classes = [DjangoModelPermissions]
+    permission_classes = [AllowAny]
 
     def post(self, request, order_id):
         try:

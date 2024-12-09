@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProductsForm from '../components/ProductsForm';
 import ProductsList from '../components/ProductsList';
+import axios from 'axios';
 
 const Products = () => {
   const [products, setProducts] = useState([
@@ -8,6 +9,20 @@ const Products = () => {
     { id: 2, name: 'Product B', description: 'Desc B', price: 20, quantity: 50 },
   ]);
   const [currentProduct, setCurrentProduct] = useState(null); // Track the product being edited
+  const [error, setError] = useState('');
+
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/products/')
+      console.log(response.data)
+    } catch (error) {
+      setError('Error fetching products: ' + error.message);
+    }
+  }
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   const handleAddProduct = (product) => {
     if (currentProduct) {
