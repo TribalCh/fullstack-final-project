@@ -64,7 +64,7 @@ const ProductsForm = ({ onSubmit, initialData, categories }) => {
         unit_price: parseFloat(product.unit_price),
         stock_quantity: parseInt(product.stock_quantity, 10),
         expiration_date: product.expiration_date ? new Date(product.expiration_date).toISOString().split('T')[0] : null,
-        stock_logs: [],
+        //stock_logs: [],
       };
       console.log('Processed Form Data:', formData);
 

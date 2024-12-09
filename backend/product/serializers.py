@@ -9,7 +9,7 @@ class ProductCategorySerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     # Change the category field to accept an ID instead of an object
     category = serializers.PrimaryKeyRelatedField(queryset=ProductCategory.objects.all())
-    stock_logs = serializers.StringRelatedField(many=True)
+    #stock_logs = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Product
