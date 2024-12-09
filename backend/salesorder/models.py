@@ -33,7 +33,7 @@ class SalesOrder(models.Model):
 
         self.save()
 
-class SalesOrderItem(models.Model):
+class Cart(models.Model):
     order = models.ForeignKey(SalesOrder, on_delete=models.CASCADE, related_name='order_items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
@@ -54,7 +54,7 @@ class SalesOrderItem(models.Model):
     def save(self, *args, **kwargs):
         
         if self.pk:  
-            original = SalesOrderItem.objects.get(pk=self.pk)
+            original = Cart.objects.get(pk=self.pk)
             if self.quantity != original.quantity:
                 quantity_difference = self.quantity - original.quantity
 

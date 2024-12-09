@@ -1,15 +1,15 @@
 from rest_framework import serializers
-from .models import SalesOrder, SalesOrderItem
+from .models import SalesOrder, Cart
 
-class SalesOrderItemSerializer(serializers.ModelSerializer):
+class CartSerializer(serializers.ModelSerializer):
     product = serializers.StringRelatedField()
 
     class Meta:
-        model = SalesOrderItem
+        model = Cart
         fields = '__all__'
 
 class SalesOrderSerializer(serializers.ModelSerializer):
-    order_items = SalesOrderItemSerializer(many=True, read_only=True)
+    order_items = CartSerializer(many=True, read_only=True)
     
     final_amount = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
 
@@ -21,7 +21,7 @@ class SalesOrderSerializer(serializers.ModelSerializer):
         order_items_data = validated_data.pop('order_items', [])
         order = SalesOrder.objects.create(**validated_data)
         for item_data in order_items_data:
-            SalesOrderItem.objects.create(order=order, **item_data)
+            Cart.objects.create(order=order, **item_data)
         order.calculate_total_amount()  # Ensure total is calculated after saving
         return order
 
@@ -39,7 +39,7 @@ class SalesOrderSerializer(serializers.ModelSerializer):
         
         instance.order_items.all().delete()
         for item_data in order_items_data:
-            SalesOrderItem.objects.create(order=instance, **item_data)
+            Cart.objects.create(order=instance, **item_data)
 
         instance.calculate_total_amount()
         return instance

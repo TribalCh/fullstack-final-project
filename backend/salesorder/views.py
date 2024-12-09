@@ -2,8 +2,8 @@ from rest_framework import viewsets, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import DjangoModelPermissions
-from .models import SalesOrder, SalesOrderItem
-from .serializers import SalesOrderSerializer, SalesOrderItemSerializer
+from .models import SalesOrder, Cart
+from .serializers import SalesOrderSerializer, CartSerializer
 
 class SalesOrderViewSet(viewsets.ModelViewSet):
     permission_classes = [DjangoModelPermissions]
@@ -20,20 +20,20 @@ class SalesOrderDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = SalesOrder.objects.all()
     serializer_class = SalesOrderSerializer
 
-class SalesOrderItemViewSet(viewsets.ModelViewSet):
+class CartViewSet(viewsets.ModelViewSet):
     permission_classes = [DjangoModelPermissions]
-    queryset = SalesOrderItem.objects.all()
-    serializer_class = SalesOrderItemSerializer
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
 
 class SalesOrderItemCreateView(generics.CreateAPIView):
     permission_classes = [DjangoModelPermissions]
-    queryset = SalesOrderItem.objects.all()
-    serializer_class = SalesOrderItemSerializer
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
 
 class SalesOrderItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [DjangoModelPermissions]
-    queryset = SalesOrderItem.objects.all()
-    serializer_class = SalesOrderItemSerializer
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
 
 class CompleteSalesOrderView(APIView):
     permission_classes = [DjangoModelPermissions]
