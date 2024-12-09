@@ -2,193 +2,186 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const ProductsForm = ({ onSubmit, initialData, categories }) => {
-  const [product, setProduct] = useState({
-    name: '',
-    category: '',
-    brand: '',
-    sku: '',
-    unit_price: '',
-    stock_quantity: '',
-    is_perishable: false,
-    expiration_date: '',
-  });
+  const [products, setProducts] = useState([
+    {
+      name: '',
+      category: '',
+      brand: '',
+      sku: '',
+      unit_price: '',
+      stock_quantity: '',
+      is_perishable: false,
+      expiration_date: '',
+      submitted: false,
+    },
+  ]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (initialData) {
-      setProduct({
-        ...initialData,
-        unit_price: initialData.unit_price.toString(),
-        stock_quantity: initialData.stock_quantity.toString(),
-        category: initialData.category ? initialData.category.id : '', // Ensure category is set properly
-      });
-    } else {
-      setProduct({
-        name: '',
-        category: '',
-        brand: '',
-        sku: '',
-        unit_price: '',
-        stock_quantity: '',
-        is_perishable: false,
-        expiration_date: '',
-      });
+      setProducts([
+        {
+          ...initialData,
+          unit_price: initialData.unit_price.toString(),
+          stock_quantity: initialData.stock_quantity.toString(),
+          category: initialData.category ? initialData.category.id : '',
+          submitted: false,
+        },
+      ]);
     }
   }, [initialData]);
 
-  const handleChange = (e) => {
+  const handleChange = (index, e) => {
     const { name, value } = e.target;
-
-    if (name === 'category') {
-      // Only set category if it's a valid number or empty
-      setProduct({ ...product, [name]: value !== '' ? parseInt(value, 10) : '' });
-    } else {
-      setProduct({ ...product, [name]: value });
-    }
+    const updatedProducts = [...products];
+    updatedProducts[index][name] = name === 'category' && value !== '' ? parseInt(value, 10) : value;
+    setProducts(updatedProducts);
   };
 
-  const handleCheckboxChange = (e) => {
-    setProduct({ ...product, is_perishable: e.target.checked });
+  const handleCheckboxChange = (index, e) => {
+    const updatedProducts = [...products];
+    updatedProducts[index].is_perishable = e.target.checked;
+    setProducts(updatedProducts);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Debugging step: Log form data before submission
+  const handleSubmitSingleProduct = async (index) => {
+    const product = products[index];
     console.log('Form Data:', product);
 
-    // Ensure valid data before submission
-    if (!product.unit_price || isNaN(product.unit_price)) {
-      alert('Please enter a valid unit price.');
-      return;
-    }
-    if (!product.stock_quantity || isNaN(product.stock_quantity)) {
-      alert('Please enter a valid stock quantity.');
+    if (!product.name || !product.sku || !product.unit_price || !product.stock_quantity) {
+      setError('Please fill out all required fields for each product.');
       return;
     }
 
-    const formData = {
-      ...product,
-      category: product.category ? parseInt(product.category, 10) : null,
-      unit_price: parseFloat(product.unit_price),
-      stock_quantity: parseInt(product.stock_quantity, 10),
-      expiration_date: product.expiration_date ? new Date(product.expiration_date).toISOString().split('T')[0] : null,
-    };
+    setLoading(true);
+    setError(null);
 
     try {
+      const formData = {
+        ...product,
+        category: product.category ? parseInt(product.category, 10) : null,
+        unit_price: parseFloat(product.unit_price),
+        stock_quantity: parseInt(product.stock_quantity, 10),
+        expiration_date: product.expiration_date ? new Date(product.expiration_date).toISOString().split('T')[0] : null,
+        stock_logs: [],
+      };
+      console.log('Processed Form Data:', formData);
+
       if (initialData) {
         await axios.put(`http://localhost:8000/api/products/${initialData.id}/`, formData);
       } else {
         await axios.post('http://localhost:8000/api/products/', formData);
       }
+
+      const updatedProducts = [...products];
+      updatedProducts[index].submitted = true;
+      setProducts(updatedProducts);
       onSubmit();
-      setProduct({
-        name: '',
-        category: '',
-        brand: '',
-        sku: '',
-        unit_price: '',
-        stock_quantity: '',
-        is_perishable: false,
-        expiration_date: '',
-      });
     } catch (error) {
+      console.error('Error adding product:', error);
       if (error.response) {
-        console.error('Error response:', error.response.data);
-        alert(`Error: ${error.response.data.detail || 'An error occurred while saving the product. Please try again.'}`);
+        if (error.response.status === 400) {
+          setError('Invalid input. Please check the fields and try again.');
+        } else if (error.response.status === 409) {
+          setError('A product with this SKU already exists. Please use a different SKU.');
+        } else {
+          setError('An error occurred on the server. Please try again later.');
+        }
+      } else if (error.request) {
+        setError('No response from the server. Please check your network connection.');
       } else {
-        console.error('Error submitting product:', error);
-        alert('An error occurred while saving the product. Please try again.');
+        setError('An unexpected error occurred. Please try again.');
       }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={(e) => e.preventDefault()}>
       <h3>{initialData ? 'Edit Product' : 'Add Product'}</h3>
-      <label>
-        Name:
-        <input
-          type="text"
-          name="name"
-          value={product.name}
-          onChange={handleChange}
-          required
-        />
-      </label>
-      <label>
-        Category:
-        <select
-          name="category"
-          value={product.category}
-          onChange={handleChange}
-          required
-        >
-          <option value="">Select a category</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Brand:
-        <input
-          type="text"
-          name="brand"
-          value={product.brand}
-          onChange={handleChange}
-        />
-      </label>
-      <label>
-        SKU:
-        <input
-          type="text"
-          name="sku"
-          value={product.sku}
-          onChange={handleChange}
-          required
-        />
-      </label>
-      <label>
-        Unit Price:
-        <input
-          type="number"
-          name="unit_price"
-          value={product.unit_price}
-          onChange={handleChange}
-          required
-        />
-      </label>
-      <label>
-        Quantity:
-        <input
-          type="number"
-          name="stock_quantity"
-          value={product.stock_quantity}
-          onChange={handleChange}
-          required
-        />
-      </label>
-      <label>
-        Perishable:
-        <input
-          type="checkbox"
-          name="is_perishable"
-          checked={product.is_perishable}
-          onChange={handleCheckboxChange}
-        />
-      </label>
-      <label>
-        Expiration Date:
-        <input
-          type="date"
-          name="expiration_date"
-          value={product.expiration_date}
-          onChange={handleChange}
-        />
-      </label>
-      <button type="submit">{initialData ? 'Update Product' : 'Add Product'}</button>
+      {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+      {products.map((product, index) => (
+        !product.submitted && (
+          <div key={index}>
+            <label>Name:</label>
+            <input
+              type="text"
+              name="name"
+              value={product.name}
+              onChange={(e) => handleChange(index, e)}
+              required
+            />
+            <label>Category:</label>
+            <select
+              name="category"
+              value={product.category}
+              onChange={(e) => handleChange(index, e)}
+              required
+            >
+              <option value="">Select a category</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+            <label>Brand:</label>
+            <input
+              type="text"
+              name="brand"
+              value={product.brand}
+              onChange={(e) => handleChange(index, e)}
+            />
+            <label>SKU:</label>
+            <input
+              type="text"
+              name="sku"
+              value={product.sku}
+              onChange={(e) => handleChange(index, e)}
+              required
+            />
+            <label>Unit Price:</label>
+            <input
+              type="number"
+              name="unit_price"
+              value={product.unit_price}
+              onChange={(e) => handleChange(index, e)}
+              required
+            />
+            <label>Quantity:</label>
+            <input
+              type="number"
+              name="stock_quantity"
+              value={product.stock_quantity}
+              onChange={(e) => handleChange(index, e)}
+              required
+            />
+            <label>Perishable:</label>
+            <input
+              type="checkbox"
+              name="is_perishable"
+              checked={product.is_perishable}
+              onChange={(e) => handleCheckboxChange(index, e)}
+            />
+            <label>Expiration Date:</label>
+            <input
+              type="date"
+              name="expiration_date"
+              value={product.expiration_date}
+              onChange={(e) => handleChange(index, e)}
+            />
+            <button
+              type="button"
+              onClick={() => handleSubmitSingleProduct(index)}
+              disabled={loading}
+            >
+              {loading ? 'Submitting...' : 'Add Product'}
+            </button>
+          </div>
+        )
+      ))}
     </form>
   );
 };
