@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const ProductsForm = ({ onSubmit, initialData, categories }) => {
+const ProductsForm = ({ initialData, categories }) => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([
     {
       name: '',
@@ -12,7 +14,6 @@ const ProductsForm = ({ onSubmit, initialData, categories }) => {
       stock_quantity: '',
       is_perishable: false,
       expiration_date: '',
-      submitted: false,
     },
   ]);
   const [loading, setLoading] = useState(false);
@@ -26,7 +27,7 @@ const ProductsForm = ({ onSubmit, initialData, categories }) => {
           unit_price: initialData.unit_price.toString(),
           stock_quantity: initialData.stock_quantity.toString(),
           category: initialData.category ? initialData.category.id : '',
-          submitted: false,
+          //submitted: false,
         },
       ]);
     }
@@ -69,18 +70,20 @@ const ProductsForm = ({ onSubmit, initialData, categories }) => {
       console.log('Processed Form Data:', formData);
 
       if (initialData) {
-        await axios.put(`http://localhost:8000/api/products/${initialData.id}/`, formData);
+       await axios.put(`http://localhost:8000/api/products/${initialData.id}/`, formData);
       } else {
-        await axios.post('http://localhost:8000/api/products/', formData);
+       await axios.post('http://localhost:8000/api/products/', formData);
       }
 
       const updatedProducts = [...products];
       updatedProducts[index].submitted = true;
       setProducts(updatedProducts);
-      onSubmit();
+      navigate('/products');
+      window.location.reload();
     } catch (error) {
       console.error('Error adding product:', error);
       if (error.response) {
+        console.error('Error Response Data:', error.response.data);
         if (error.response.status === 400) {
           setError('Invalid input. Please check the fields and try again.');
         } else if (error.response.status === 409) {
