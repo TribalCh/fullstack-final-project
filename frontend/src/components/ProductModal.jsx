@@ -45,7 +45,7 @@ const ProductModal = ({ productId, onClose }) => {
     >
       <h4>Product Details</h4>
       <p><strong>Name:</strong> {product.name}</p>
-      <p><strong>Category:</strong> {product.category ? product.category.name : 'N/A'}</p>
+      <p><strong>Category:</strong> {product.category_name}</p>
       <p><strong>Brand:</strong> {product.brand}</p>
       <p><strong>SKU:</strong> {product.sku}</p>
       <p><strong>Unit Price:</strong> ₱{isNaN(Number(product.unit_price)) ? 'N/A' : Number(product.unit_price).toFixed(2)}</p>

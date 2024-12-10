@@ -4,16 +4,19 @@ from .models import Product, ProductCategory, ProductStockLog
 class ProductCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductCategory
-        fields = '__all__'
+        fields = ['id', 'name']
 
 class ProductSerializer(serializers.ModelSerializer):
-    # Change the category field to accept an ID instead of an object
-    category = serializers.PrimaryKeyRelatedField(queryset=ProductCategory.objects.all())
-    #stock_logs = serializers.StringRelatedField(many=True)
+    # Use PrimaryKeyRelatedField for input (ID) and ReadOnlyField for output (name)
+    category_name = serializers.ReadOnlyField(source='category.name')  # For displaying category name
+    category = serializers.PrimaryKeyRelatedField(queryset=ProductCategory.objects.all())  # For accepting category ID
 
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = [
+            'id', 'name', 'category', 'category_name', 'brand', 'sku',
+            'unit_price', 'stock_quantity', 'is_perishable', 'expiration_date'
+        ]
 
     def create(self, validated_data):
         # Custom create logic if needed

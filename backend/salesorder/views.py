@@ -35,28 +35,34 @@ class SalesOrderItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
+class CartItemsByOrderView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, order_id):
+        try:
+            # Fetch cart items associated with the given order ID
+            cart_items = Cart.objects.filter(order_id=order_id)
+            serializer = CartSerializer(cart_items, many=True)
+            return Response(serializer.data, status=200)
+        except Exception as e:
+            return Response({"error": f"An error occurred: {str(e)}"}, status=500)
+
 class CompleteSalesOrderView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, order_id):
         try:
-            
             order = SalesOrder.objects.get(order_id=order_id)
 
-            
             if order.status == 'Completed':
                 return Response({"message": f"Order {order_id} is already completed."}, status=400)
 
-            
             order.mark_as_completed()
 
-            
             return Response({"message": f"Order {order_id} marked as completed and stock updated."})
 
         except SalesOrder.DoesNotExist:
-            
             return Response({"error": "Order not found."}, status=404)
 
         except Exception as e:
-            
             return Response({"error": f"An error occurred: {str(e)}"}, status=500)

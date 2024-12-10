@@ -1,17 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SalesOrderForm from './SalesOrderForm'; // Import the form component
 import OrderModal from './OrderModal';
 
 const SalesOrderList = ({ orders, products, categories, onEdit, onDelete }) => {
-  const [showModal, setShowModal] = useState(false);
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [selectedOrderData, setSelectedOrderData] = useState(null);
   const [showEditForm, setShowEditForm] = useState(false);
-
-  const viewOrder = (orderId) => {
-    setSelectedOrderId(orderId);
-    setShowModal(true);
-  };
+  const navigate = useNavigate(); // Hook for navigation
 
   const editOrder = (order) => {
     setSelectedOrderData(order);
@@ -19,10 +14,34 @@ const SalesOrderList = ({ orders, products, categories, onEdit, onDelete }) => {
   };
 
   const closeModal = () => {
-    setShowModal(false);
-    setSelectedOrderId(null);
     setShowEditForm(false);
     setSelectedOrderData(null);
+  };
+
+  // Base button style
+  const buttonStyle = {
+    padding: '5px 10px',
+    border: 'none',
+    borderRadius: '5px',
+    color: 'white',
+    cursor: 'pointer',
+    marginRight: '10px',
+  };
+
+  // Specific button styles
+  const blueButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: '#007BFF', // Blue color for Edit and View buttons
+  };
+
+  const redButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: '#FF4D4D', // Red color for Delete button
+  };
+
+  const viewOrder = (orderId) => {
+    // Navigate to the OrderDetailsPage with the orderId as a URL parameter
+    navigate(`/order-details/${orderId}`);
   };
 
   return (
@@ -43,38 +62,19 @@ const SalesOrderList = ({ orders, products, categories, onEdit, onDelete }) => {
             <strong>Customer:</strong> {order.customer_name} <br />
             <strong>Total:</strong> ₱{Number(order.total_amount).toFixed(2)}
             <div style={{ marginTop: '5px' }}>
-              <button
-                onClick={() => editOrder(order)}
-                style={{ marginRight: '10px' }}
-              >
+              <button onClick={() => editOrder(order)} style={blueButtonStyle}>
                 Edit
               </button>
-              <button
-                onClick={() => onDelete(order.order_id)}
-                style={{
-                  color: 'white',
-                  backgroundColor: 'red',
-                  border: 'none',
-                  padding: '5px',
-                  borderRadius: '3px',
-                }}
-              >
+              <button onClick={() => onDelete(order.order_id)} style={redButtonStyle}>
                 Delete
               </button>
-              <button
-                onClick={() => viewOrder(order.order_id)}
-                style={{ marginLeft: '10px' }}
-              >
+              <button onClick={() => viewOrder(order.order_id)} style={blueButtonStyle}>
                 View
               </button>
             </div>
           </li>
         ))}
       </ul>
-
-      {showModal && selectedOrderId && (
-        <OrderModal orderId={selectedOrderId} onClose={closeModal} />
-      )}
 
       {showEditForm && selectedOrderData && (
         <div
